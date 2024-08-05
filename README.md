@@ -7,9 +7,9 @@
 1. Install the extension
 2. open `style.json` in editor
 3. open command palette and run `Maplibre: Viewer`
-    - ![](./doc/palette.png)
+    - ![](https://github.com/Kanahiro/maplibre-vscode-extension/blob/main/doc/palette.png?raw=true)
 4. Viewer will open in new tab. When edit `style.json`, the viewer will update automatically.
-    - ![](./doc/viewer.png)
+    - ![](https://github.com/Kanahiro/maplibre-vscode-extension/blob/main/doc/viewer.png?raw=true)
 
 ## attribution
 
