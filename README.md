@@ -1,5 +1,7 @@
 # maplibre-vscode-extension
 
+<https://marketplace.visualstudio.com/items?itemName=kiguchi.maplibre-vscode-extension>
+
 ## Usage
 
 1. Install the extension
