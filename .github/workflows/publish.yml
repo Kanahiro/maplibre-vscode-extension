@@ -1,5 +1,6 @@
 on:
     release:
+        types: [published]
 name: Deploy Extension
 jobs:
     deploy:
