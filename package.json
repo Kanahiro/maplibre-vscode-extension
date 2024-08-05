@@ -2,6 +2,7 @@
   "name": "maplibre-vscode-extension",
   "displayName": "maplibre",
   "description": "",
+  "publisher": "kiguchi",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.92.0"
@@ -28,6 +29,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
+    "@types/geojson": "^7946.0.14",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
     "@types/vscode": "^1.92.0",
@@ -37,5 +39,8 @@
     "@vscode/test-electron": "^2.4.0",
     "eslint": "^8.57.0",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@maplibre/maplibre-gl-style-spec": "^20.3.0"
   }
 }

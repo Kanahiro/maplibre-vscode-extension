@@ -2,19 +2,24 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-const validateStyleJson = (stylejson: string) => {
+const styleUtils = require('@maplibre/maplibre-gl-style-spec');
+
+const validateStyleJson = (stylejson: string): Array<{ message: string }> => {
     let _json: any;
     try {
         _json = JSON.parse(stylejson);
     } catch {
-        return false;
+        return [{ message: 'Invalid JSON' }];
     }
-    return true;
+
+    return styleUtils.validateStyleMin(_json);
 };
 
 const updateWebview = (webview: vscode.Webview, stylejson: string) => {
-    if (!validateStyleJson(stylejson)) {
-        webview.html = `invalid style.json`;
+    const errors = validateStyleJson(stylejson);
+
+    if (errors.length > 0) {
+        webview.html = errors.map((e: any) => e.message).join('<br>');
         return;
     }
 
@@ -42,7 +47,7 @@ const updateWebview = (webview: vscode.Webview, stylejson: string) => {
                             const vscode = acquireVsCodeApi();
                             map.on('click', (e) => {
                                 vscode.postMessage({
-                                    command: 'alert',
+                                    command: 'alertaa',
                                     text: JSON.stringify(e.lngLat)
                                 });
                     });
@@ -53,7 +58,7 @@ const updateWebview = (webview: vscode.Webview, stylejson: string) => {
 
     webview.onDidReceiveMessage((message) => {
         switch (message.command) {
-            case 'alert':
+            case 'alertaa':
                 vscode.window.showErrorMessage(message.text);
                 return;
         }
