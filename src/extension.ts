@@ -42,27 +42,11 @@ const updateWebview = (webview: vscode.Webview, stylejson: string) => {
 									container: 'map',
 									style: ${stylejson}
 							});
-
-                            // send message to vscode
-                            const vscode = acquireVsCodeApi();
-                            map.on('click', (e) => {
-                                vscode.postMessage({
-                                    command: 'alertaa',
-                                    text: JSON.stringify(e.lngLat)
-                                });
                     });
 
 					</script>
 			</body>
 		</html>`;
-
-    webview.onDidReceiveMessage((message) => {
-        switch (message.command) {
-            case 'alertaa':
-                vscode.window.showErrorMessage(message.text);
-                return;
-        }
-    });
 };
 
 // This method is called when your extension is activated
