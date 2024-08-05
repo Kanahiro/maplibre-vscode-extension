@@ -10,3 +10,7 @@
     - ![](./doc/palette.png)
 4. Viewer will open in new tab. When edit `style.json`, the viewer will update automatically.
     - ![](./doc/viewer.png)
+
+## attribution
+
+- icon: <https://github.com/maplibre/maplibre.github.io/blob/main/static/img/maplibre%20old%20profile.png>
