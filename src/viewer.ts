@@ -19,12 +19,16 @@ const createWebview = () => {
               href="https://unpkg.com/maplibre-gl@4.5.1/dist/maplibre-gl.css"
               rel="stylesheet"
           />
+          <script src="https://unpkg.com/pmtiles@^3.0.0/dist/pmtiles.js"></script>
       </head>
       <body>
         <div id="map" style="height: 100vh">
           <div id="error"></div>
         </div>
         <script>
+            const protocol = new pmtiles.Protocol();
+            maplibregl.addProtocol("pmtiles", protocol.tile);
+
             const map = new maplibregl.Map({
                 container: 'map',
                 style: {

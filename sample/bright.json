@@ -10,7 +10,7 @@
   "sources": {
     "openmaptiles": {
       "type": "vector",
-      "url": "https://tile.openstreetmap.jp/data/planet.json"
+      "url": "pmtiles://https://tile.openstreetmap.jp/static/planet-20240729.pmtiles"
     },
     "takeshima": {
       "type": "vector",
@@ -48,7 +48,7 @@
         "visibility": "visible"
       },
       "paint": {
-        "fill-color": "#fff",
+        "fill-color": "#ffff00",
         "fill-opacity": {
           "base": 1,
           "stops": [
