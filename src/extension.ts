@@ -42,7 +42,6 @@ const updateWebview = (webview: vscode.Webview, stylejson: string) => {
 									container: 'map',
 									style: ${stylejson}
 							});
-                    });
 
 					</script>
 			</body>
