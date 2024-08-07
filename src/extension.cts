@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createWebview, updateStyle } from './viewer';
+import { createWebview, updateStyle } from './viewer.cjs';
 
 export function activate(context: vscode.ExtensionContext) {
     const disposable = vscode.commands.registerCommand(
@@ -8,7 +8,11 @@ export function activate(context: vscode.ExtensionContext) {
             const target = vscode.window.activeTextEditor?.document;
             const panel = createWebview();
 
-            updateStyle(panel.webview, target?.getText() ?? '');
+            setTimeout(() => {
+                // take interval to wait webview rendered
+                updateStyle(panel.webview, target?.getText() ?? '');
+            }, 500);
+
             panel.onDidChangeViewState(() => {
                 updateStyle(panel.webview, target?.getText() ?? '');
             });
