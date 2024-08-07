@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createWebview, updateStyle } from './viewer';
+import { createWebview, updateStyle } from './viewer.cjs';
 
 export function activate(context: vscode.ExtensionContext) {
     const disposable = vscode.commands.registerCommand(

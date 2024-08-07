@@ -11,7 +11,7 @@
     "Other"
   ],
   "activationEvents": [],
-  "main": "./out/extension.js",
+  "main": "./out/extension.cjs",
   "contributes": {
     "commands": [
       {
@@ -20,6 +20,7 @@
       }
     ]
   },
+  "type": "module",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
