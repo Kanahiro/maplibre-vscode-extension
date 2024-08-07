@@ -40,23 +40,26 @@ const createWebview = () => {
             map.addControl(new maplibregl.NavigationControl());
 
             window.addEventListener('message', event => {
-            const message = event.data;
-            const errDiv = document.getElementById('error');
-            switch (message.command) {
-                case 'style':
-                    errDiv.innerHTML = '';
-                    map.setStyle(message.style);
-                    break;
-                case 'error':
-                    errDiv.innerHTML = message.error;
-                    map.setStyle({
-                        "version": 8,
-                        "sources": {},
-                        "layers": []
-                    });
-                    break;
-              }
-          });
+                const message = event.data;
+                const errDiv = document.getElementById('error');
+                switch (message.command) {
+                    case 'style':
+                        errDiv.innerHTML = '';
+                        map.setStyle(message.style);
+                        break;
+                    case 'error':
+                        errDiv.innerHTML = message.error;
+                        map.setStyle({
+                            "version": 8,
+                            "sources": {},
+                            "layers": []
+                        });
+                        break;
+                }
+            });
+            const vscode = acquireVsCodeApi();
+            vscode.postMessage({ type: 'ready' });
+            console.log('ready');
         </script>
       </body>
     </html>`;
