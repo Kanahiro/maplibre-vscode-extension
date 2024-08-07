@@ -3,15 +3,16 @@ import { createWebview, updateStyle } from './viewer.cjs';
 
 export function activate(context: vscode.ExtensionContext) {
     const disposable = vscode.commands.registerCommand(
-        'maplibre.viewer',
+        'maplibre.launch_editor',
         () => {
             const target = vscode.window.activeTextEditor?.document;
             const panel = createWebview();
 
-            setTimeout(() => {
-                // take interval to wait webview rendered
-                updateStyle(panel.webview, target?.getText() ?? '');
-            }, 500);
+            panel.webview.onDidReceiveMessage((message) => {
+                if (message.type === 'ready') {
+                    updateStyle(panel.webview, target?.getText() ?? '');
+                }
+            });
 
             panel.onDidChangeViewState(() => {
                 updateStyle(panel.webview, target?.getText() ?? '');

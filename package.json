@@ -15,8 +15,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "maplibre.viewer",
-        "title": "MapLibre: Viewer"
+        "command": "maplibre.launch_editor",
+        "title": "MapLibre: Launch Editor"
       }
     ]
   },
