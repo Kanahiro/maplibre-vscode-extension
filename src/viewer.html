@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>maplibre-vscode-extension</title>
+        <script src="https://unpkg.com/maplibre-gl@4.5.1/dist/maplibre-gl.js"></script>
+        <link
+            href="https://unpkg.com/maplibre-gl@4.5.1/dist/maplibre-gl.css"
+            rel="stylesheet"
+        />
+        <script src="https://unpkg.com/pmtiles@^3.0.0/dist/pmtiles.js"></script>
+    </head>
+    <body>
+        <div id="map" style="height: 100vh">
+            <div id="error"></div>
+        </div>
+        <script>
+            const protocol = new pmtiles.Protocol();
+            maplibregl.addProtocol('pmtiles', protocol.tile);
+
+            class ViewstateControl {
+                _map;
+                _container;
+                _textEl;
+
+                onAdd(map) {
+                    this._map = map;
+                    this._container = document.createElement('div');
+                    this._container.className =
+                        'maplibregl-ctrl maplibregl-ctrl-group maplibregl-ctrl-zoom';
+                    this._container.setAttribute(
+                        'data-wd-key',
+                        'maplibre:ctrl-zoom',
+                    );
+                    this._container.style.cssText = `
+                        display: flex;
+                        align-items: center;
+                        color: #333;
+                        cursor: pointer;
+                        padding: 4px 10px;
+                        border-radius: 4px;
+                        font-size: 14px;`;
+                    this._container.innerHTML = `<span></span>`;
+                    this._textEl = this._container.querySelector('span');
+
+                    this._textEl.addEventListener('click', () => {
+                        const { zoom, center, pitch, bearing } =
+                            this.viewState();
+                        // maplibre url hash = #lon/lat/zoom/pitch/bearing
+                        navigator.clipboard.writeText(
+                            `#${center[0]}/${center[1]}/${zoom}/${pitch}/${bearing}`,
+                        );
+                    });
+
+                    this._map.on('move', () => this.updateText());
+                    this._map.on('zoom', () => this.updateText());
+
+                    return this._container;
+                }
+
+                viewState() {
+                    const zoom = this._map.getZoom();
+                    const center = this._map.getCenter().toArray();
+                    const bearing = this._map.getBearing();
+                    const pitch = this._map.getPitch();
+                    return {
+                        zoom,
+                        center,
+                        bearing,
+                        pitch,
+                    };
+                }
+
+                updateText() {
+                    const { zoom, center, pitch, bearing } = this.viewState();
+                    this._textEl.innerHTML = `lon:${center[0].toFixed(2)} \
+                        lat:${center[1].toFixed(2)} \
+                        zoom:${zoom.toFixed(2)} \
+                        pitch:${pitch.toFixed(2)} \
+                        bearing:${bearing.toFixed(2)}`;
+                }
+
+                onRemove() {
+                    this._container.parentNode.removeChild(this._container);
+                    this._map = undefined;
+                }
+            }
+
+            const map = new maplibregl.Map({
+                container: 'map',
+                maxPitch: 85,
+                style: {
+                    version: 8,
+                    sources: {},
+                    layers: [],
+                },
+            });
+
+            map.addControl(new ViewstateControl());
+            map.addControl(new maplibregl.NavigationControl());
+
+            window.addEventListener('message', (event) => {
+                const message = event.data;
+                const errDiv = document.getElementById('error');
+                switch (message.command) {
+                    case 'style':
+                        errDiv.innerHTML = '';
+                        map.setStyle(message.style);
+                        break;
+                    case 'error':
+                        errDiv.innerHTML = message.error;
+                        map.setStyle({
+                            version: 8,
+                            sources: {},
+                            layers: [],
+                        });
+                        break;
+                }
+            });
+            const vscode = acquireVsCodeApi();
+            vscode.postMessage({ type: 'ready' });
+        </script>
+    </body>
+</html>
