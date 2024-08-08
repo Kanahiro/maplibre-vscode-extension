@@ -16,6 +16,7 @@
             <div id="error"></div>
         </div>
         <script>
+            const vscode = acquireVsCodeApi();
             const protocol = new pmtiles.Protocol();
             maplibregl.addProtocol('pmtiles', protocol.tile);
 
@@ -100,6 +101,38 @@
             map.addControl(new ViewstateControl());
             map.addControl(new maplibregl.NavigationControl());
 
+            map.on('click', (e) => {
+                // detect layers
+                const features = map.queryRenderedFeatures(e.point);
+                const layerIds = features.map((f) => f.layer.id);
+                const uniqueLayerIds = [...new Set(layerIds)];
+
+                if (uniqueLayerIds.length === 0) {
+                    return;
+                }
+
+                // show layers in popup
+                // when click layername, postMessage to vscode
+                const container = document.createElement('div');
+                uniqueLayerIds.forEach((layerId) => {
+                    const layerName = document.createElement('div');
+                    layerName.textContent = layerId;
+                    layerName.style.cssText = `
+                        cursor: pointer;
+                        color: #333;
+                    `;
+                    layerName.addEventListener('click', () => {
+                        vscode.postMessage({ type: 'layer-select', layerId });
+                    });
+                    container.appendChild(layerName);
+                });
+
+                new maplibregl.Popup()
+                    .setLngLat(e.lngLat)
+                    .setDOMContent(container)
+                    .addTo(map);
+            });
+
             window.addEventListener('message', (event) => {
                 const message = event.data;
                 const errDiv = document.getElementById('error');
@@ -118,7 +151,7 @@
                         break;
                 }
             });
-            const vscode = acquireVsCodeApi();
+
             vscode.postMessage({ type: 'ready' });
         </script>
     </body>
