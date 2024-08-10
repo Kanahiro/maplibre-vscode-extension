@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
 
 function jumpCursor(editor: vscode.TextEditor, line: number) {
-    const _editor = getStyleEditor(editor.document.uri.toString())!;
+    const _editor = getStyleEditor(editor.document.uri.toString());
+    if (_editor === undefined) {
+        return; // guard: this won't happen
+    }
 
     if (line < 0 || _editor.document.lineCount < line) {
         return;

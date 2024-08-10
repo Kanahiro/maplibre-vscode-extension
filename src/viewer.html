@@ -12,9 +12,8 @@
         <script src="https://unpkg.com/pmtiles@^3.0.0/dist/pmtiles.js"></script>
     </head>
     <body>
-        <div id="map" style="height: 100vh">
-            <div id="error"></div>
-        </div>
+        <div id="error"></div>
+        <div id="map" style="height: 100vh"></div>
         <script>
             const vscode = acquireVsCodeApi();
             const protocol = new pmtiles.Protocol();
@@ -135,13 +134,16 @@
 
             window.addEventListener('message', (event) => {
                 const message = event.data;
+                const mapDiv = document.getElementById('map');
                 const errDiv = document.getElementById('error');
                 switch (message.command) {
                     case 'style':
+                        mapDiv.style.display = 'block';
                         errDiv.innerHTML = '';
                         map.setStyle(message.style);
                         break;
                     case 'error':
+                        mapDiv.style.display = 'none';
                         errDiv.innerHTML = message.error;
                         map.setStyle({
                             version: 8,
