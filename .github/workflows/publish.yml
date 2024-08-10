@@ -13,4 +13,4 @@ jobs:
             - run: npm install
             - run: npm install -g @vscode/vsce
             - run: vsce package
-            - run: vsce publish -p ${{ secrets.VSCODE_TOKEN }}
+            - run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }}
