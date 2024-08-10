@@ -35,11 +35,13 @@ function getStyleEditor(uri: string): vscode.TextEditor | undefined {
 }
 
 function findLine(text: string, word: string) {
-    const lines = text.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].includes(word)) {
-            return i;
-        }
+    // find "id": "word" pattern
+    const pattern = new RegExp(`"id":\\s*"${word}"`);
+    const match = text.match(pattern);
+    if (match) {
+        // line = the length of text.substring from start to matched word.
+        const line = text.substring(0, match.index).split('\n').length - 1;
+        return line;
     }
     return -1;
 }
