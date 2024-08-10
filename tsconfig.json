@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "Node16",
+        "module": "CommonJS",
         "target": "ES2022",
         "lib": ["ES2022"],
         "sourceMap": true,
