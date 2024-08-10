@@ -7,9 +7,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
-            - run: npm install
-            - uses: lannonbr/vsce-action@3.0.0
+            - uses: actions/setup-node@v1
               with:
-                  args: 'publish -p $AZURE_ACCESS_TOKEN'
-              env:
-                  AZURE_ACCESS_TOKEN: ${{ secrets.AZURE_ACCESS_TOKEN }}
+                  node-version: '20'
+            - run: npm install
+            - run: npm install -g @vscode/vsce
+            - run: vsce package
+            - run: vsce publish -p ${{ secrets.VSCODE_TOKEN }}
