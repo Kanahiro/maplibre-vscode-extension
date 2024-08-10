@@ -34,9 +34,9 @@ function getStyleEditor(uri: string): vscode.TextEditor | undefined {
     return undefined;
 }
 
-function findLine(text: string, word: string) {
+function findLine(text: string, layerId: string) {
     // find "id": "word" pattern
-    const pattern = new RegExp(`"id":\\s*"${word}"`);
+    const pattern = new RegExp(`"id":\\s*"${layerId}"`);
     const match = text.match(pattern);
     if (match) {
         // line = the length of text.substring from start to matched word.
