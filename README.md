@@ -11,6 +11,13 @@
 4. Viewer will open in new tab. When edit `style.json`, the viewer will update automatically.
     - ![](https://github.com/Kanahiro/maplibre-vscode-extension/blob/main/doc/viewer.png?raw=true)
 
+### Validation
+
+![](https://github.com/Kanahiro/maplibre-vscode-extension/blob/main/doc/validation.png?raw=true)
+
+- style file named `*style.json` will be validated by JSON schema generated from type of `StyleSpecification`.
+- currently there is limitation to validate not nested values only.
+
 ### Supported protocols
 
 - `https://path/to/file`
