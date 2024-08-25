@@ -10,6 +10,12 @@
             rel="stylesheet"
         />
         <script src="https://unpkg.com/pmtiles@^3.0.0/dist/pmtiles.js"></script>
+        <!-- inspect -->
+        <script src="https://unpkg.com/@maplibre/maplibre-gl-inspect@latest/dist/maplibre-gl-inspect.js"></script>
+        <link
+            href="https://unpkg.com/@maplibre/maplibre-gl-inspect@latest/dist/maplibre-gl-inspect.css"
+            rel="stylesheet"
+        />
     </head>
     <body>
         <div id="error"></div>
@@ -99,6 +105,16 @@
 
             map.addControl(new ViewstateControl());
             map.addControl(new maplibregl.NavigationControl());
+
+            map.addControl(
+                // loaded from CDN
+                new MaplibreInspect({
+                    popup: new maplibregl.Popup({
+                        closeButton: false,
+                        closeOnClick: false,
+                    }),
+                }),
+            );
 
             map.on('click', (e) => {
                 // detect layers
