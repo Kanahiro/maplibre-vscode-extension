@@ -106,17 +106,19 @@
             map.addControl(new ViewstateControl());
             map.addControl(new maplibregl.NavigationControl());
 
-            map.addControl(
+            const inspect = new MaplibreInspect({
                 // loaded from CDN
-                new MaplibreInspect({
-                    popup: new maplibregl.Popup({
-                        closeButton: false,
-                        closeOnClick: false,
-                    }),
+                popup: new maplibregl.Popup({
+                    closeButton: false,
+                    closeOnClick: false,
                 }),
-            );
+            });
+            map.addControl(inspect);
 
             map.on('click', (e) => {
+                if (inspect.showInspectMap) {
+                    return;
+                }
                 // detect layers
                 const features = map.queryRenderedFeatures(e.point);
                 const layerIds = features.map((f) => f.layer.id);
