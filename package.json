@@ -21,10 +21,33 @@
     ],
     "commands": [
       {
-        "command": "maplibre.launch_editor",
-        "title": "MapLibre: Launch Editor"
+        "command": "maplibre.launch_viewer",
+        "title": "MapLibre: Launch Viewer"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "maplibre.launch_viewer",
+          "when": "resourceFilename =~ /.*style\\.json$/",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "maplibre.launch_viewer",
+          "when": "resourceFilename =~ /.*style\\.json$/",
+          "group": "navigation"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "maplibre.launch_viewer",
+          "when": "resourceFilename =~ /.*style\\.json$/",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
