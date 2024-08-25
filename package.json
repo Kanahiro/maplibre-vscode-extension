@@ -3,7 +3,7 @@
   "displayName": "MapLibre",
   "description": "",
   "publisher": "kiguchi",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "engines": {
     "vscode": "^1.92.0"
   },
@@ -21,10 +21,33 @@
     ],
     "commands": [
       {
-        "command": "maplibre.launch_editor",
-        "title": "MapLibre: Launch Editor"
+        "command": "maplibre.launch_viewer",
+        "title": "MapLibre: Launch Viewer"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "maplibre.launch_viewer",
+          "when": "resourceFilename =~ /.*style\\.json$/",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "maplibre.launch_viewer",
+          "when": "resourceFilename =~ /.*style\\.json$/",
+          "group": "navigation"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "maplibre.launch_viewer",
+          "when": "resourceFilename =~ /.*style\\.json$/",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

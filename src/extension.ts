@@ -4,7 +4,7 @@ import { jumpCursor, findLine } from './editor.js';
 
 export function activate(context: vscode.ExtensionContext) {
     const disposable = vscode.commands.registerCommand(
-        'maplibre.launch_editor',
+        'maplibre.launch_viewer',
         () => {
             const styleEditor = vscode.window.activeTextEditor!;
             const panel = createWebview();
