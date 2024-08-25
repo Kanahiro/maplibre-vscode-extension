@@ -28,6 +28,7 @@
     "openmaptiles": {
       "type": "vector",
       "url": "pmtiles://https://tile.openstreetmap.jp/static/planet-20240729.pmtiles"
+      // "tiles": ["pmtiles://https://tile.openstreetmap.jp/static/planet-20240729.pmtiles/{z}/{x}/{y}"] is also okay
     },
     "takeshima": {
       "type": "vector",
