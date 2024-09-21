@@ -1,6 +1,9 @@
 # maplibre-vscode-extension
 
-<https://marketplace.visualstudio.com/items?itemName=kiguchi.maplibre-vscode-extension>
+[![GitHub](https://img.shields.io/badge/github-maplibre--vscode--extension-8da0cb?logo=github)](https://github.com/Kanahiro/maplibre-vscode-extension)
+[![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/kiguchi.maplibre-vscode-extension)](https://marketplace.visualstudio.com/items?itemName=kiguchi.maplibre-vscode-extension)
+[![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/kiguchi.maplibre-vscode-extension)](https://marketplace.visualstudio.com/items?itemName=kiguchi.maplibre-vscode-extension)
+[![Visual Studio Marketplace Rating](https://img.shields.io/visual-studio-marketplace/stars/kiguchi.maplibre-vscode-extension)](https://marketplace.visualstudio.com/items?itemName=kiguchi.maplibre-vscode-extension)
 
 ## Usage
 
