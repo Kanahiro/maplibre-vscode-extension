@@ -3,7 +3,7 @@
   "displayName": "MapLibre",
   "description": "",
   "publisher": "kiguchi",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "engines": {
     "vscode": "^1.92.0"
   },
