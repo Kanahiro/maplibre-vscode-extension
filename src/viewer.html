@@ -93,62 +93,72 @@
                 }
             }
 
-            const map = new maplibregl.Map({
-                container: 'map',
-                maxPitch: 85,
-                style: {
-                    version: 8,
-                    sources: {},
-                    layers: [],
-                },
-            });
+            let map = null;
 
-            map.addControl(new ViewstateControl());
-            map.addControl(new maplibregl.NavigationControl());
+            const initializeMap = (style) => {
+                const center = style.center || [0, 0];
+                const zoom = style.zoom !== undefined ? style.zoom : 1;
+                const bearing = style.bearing || 0;
+                const pitch = style.pitch || 0;
 
-            const inspect = new MaplibreInspect({
-                // loaded from CDN
-                popup: new maplibregl.Popup({
-                    closeButton: false,
-                    closeOnClick: false,
-                }),
-            });
-            map.addControl(inspect);
-
-            map.on('click', (e) => {
-                if (inspect._showInspectMap) {
-                    return;
-                }
-                // detect layers
-                const features = map.queryRenderedFeatures(e.point);
-                const layerIds = features.map((f) => f.layer.id);
-                const uniqueLayerIds = [...new Set(layerIds)];
-
-                if (uniqueLayerIds.length === 0) {
-                    return;
-                }
-
-                // show layers in popup
-                // when click layername, postMessage to vscode
-                const container = document.createElement('div');
-                uniqueLayerIds.forEach((layerId) => {
-                    const layerName = document.createElement('div');
-                    layerName.textContent = layerId;
-                    layerName.style.cssText = `
-                        cursor: pointer;
-                        color: #333;
-                    `;
-                    layerName.addEventListener('click', () => {
-                        vscode.postMessage({ type: 'layer-select', layerId });
-                    });
-                    container.appendChild(layerName);
+                map = new maplibregl.Map({
+                    container: 'map',
+                    maxPitch: 85,
+                    style: style,
+                    center: center,
+                    zoom: zoom,
+                    bearing: bearing,
+                    pitch: pitch,
                 });
 
-                new maplibregl.Popup()
-                    .setLngLat(e.lngLat)
-                    .setDOMContent(container)
-                    .addTo(map);
-            });
+                map.addControl(new ViewstateControl());
+                map.addControl(new maplibregl.NavigationControl());
+
+                const inspect = new MaplibreInspect({
+                    // loaded from CDN
+                    popup: new maplibregl.Popup({
+                        closeButton: false,
+                        closeOnClick: false,
+                    }),
+                });
+                map.addControl(inspect);
+
+                map.on('click', (e) => {
+                    if (inspect._showInspectMap) {
+                        return;
+                    }
+                    // detect layers
+                    const features = map.queryRenderedFeatures(e.point);
+                    const layerIds = features.map((f) => f.layer.id);
+                    const uniqueLayerIds = [...new Set(layerIds)];
+
+                    if (uniqueLayerIds.length === 0) {
+                        return;
+                    }
+
+                    // show layers in popup
+                    // when click layername, postMessage to vscode
+                    const container = document.createElement('div');
+                    uniqueLayerIds.forEach((layerId) => {
+                        const layerName = document.createElement('div');
+                        layerName.textContent = layerId;
+                        layerName.style.cssText = `
+                            cursor: pointer;
+                            color: #333;
+                        `;
+                        layerName.addEventListener('click', () => {
+                            vscode.postMessage({ type: 'layer-select', layerId });
+                        });
+                        container.appendChild(layerName);
+                    });
+
+                    new maplibregl.Popup()
+                        .setLngLat(e.lngLat)
+                        .setDOMContent(container)
+                        .addTo(map);
+                });
+                return map;
+            };
 
             window.addEventListener('message', (event) => {
                 const message = event.data;
@@ -158,7 +168,7 @@
                     case 'style':
                         mapDiv.style.display = 'block';
                         errDiv.innerHTML = '';
-                        map.setStyle(message.style);
+                        map = initializeMap(message.style); // スタイルで初期化
                         break;
                     case 'error':
                         mapDiv.style.display = 'none';
