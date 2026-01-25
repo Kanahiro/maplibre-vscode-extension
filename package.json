@@ -10,15 +10,11 @@
 	"categories": [
 		"Other"
 	],
-	"activationEvents": [],
+	"activationEvents": [
+		"onLanguage:json"
+	],
 	"main": "./dist/extension.js",
 	"contributes": {
-		"jsonValidation": [
-			{
-				"fileMatch": "*style.json",
-				"url": "./schema/style.json"
-			}
-		],
 		"commands": [
 			{
 				"command": "maplibre.launch_viewer",
