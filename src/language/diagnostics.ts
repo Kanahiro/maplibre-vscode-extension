@@ -31,160 +31,227 @@ function extractPathFromMessage(message: string): string | undefined {
     return match ? match[1] : undefined;
 }
 
-/**
- * パスから行番号を推測
- * パス例: "layers[0].paint.fill-color", "layers[0].filter[0]"
- */
-function findLineFromPath(text: string, path: string): number {
-    const lines = text.split('\n');
+type Segment = { type: 'key'; value: string } | { type: 'index'; value: number };
 
-    // パスをパース: "layers[0].filter[0]" → [{type: 'key', value: 'layers'}, {type: 'index', value: 0}, ...]
-    const segments: Array<{ type: 'key' | 'index'; value: string | number }> =
-        [];
-    const parts = path.split('.');
-    for (const part of parts) {
-        const indexMatch = part.match(/^(\w+)\[(\d+)\]$/);
-        if (indexMatch) {
-            segments.push({ type: 'key', value: indexMatch[1] });
-            segments.push({ type: 'index', value: parseInt(indexMatch[2], 10) });
-        } else if (part.match(/^\[\d+\]$/)) {
-            segments.push({
-                type: 'index',
-                value: parseInt(part.slice(1, -1), 10),
-            });
-        } else {
-            segments.push({ type: 'key', value: part });
+/**
+ * パスをセグメントに分解
+ * 例: "layers[0].filter[0][1]" → [{type: 'key', value: 'layers'}, {type: 'index', value: 0}, {type: 'key', value: 'filter'}, {type: 'index', value: 0}, {type: 'index', value: 1}]
+ */
+function parsePath(path: string): Segment[] {
+    const segments: Segment[] = [];
+    const regex = /([^.\[\]]+)|\[(\d+)\]/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(path)) !== null) {
+        if (match[1] !== undefined) {
+            segments.push({ type: 'key', value: match[1] });
+        } else if (match[2] !== undefined) {
+            segments.push({ type: 'index', value: parseInt(match[2], 10) });
         }
     }
+
+    return segments;
+}
+
+/**
+ * 文字列リテラルをスキップ
+ * 戻り値: 閉じ引用符の次の位置
+ */
+function skipString(text: string, pos: number): number {
+    pos++; // 開始引用符をスキップ
+    while (pos < text.length) {
+        if (text[pos] === '\\') {
+            pos += 2;
+        } else if (text[pos] === '"') {
+            return pos + 1;
+        } else {
+            pos++;
+        }
+    }
+    return pos;
+}
+
+/**
+ * JSON値をスキップ（オブジェクト、配列、文字列、プリミティブ）
+ * 戻り値: 値の終わりの次の位置
+ */
+function skipValue(text: string, pos: number): number {
+    // 空白をスキップ
+    while (pos < text.length && /\s/.test(text[pos])) {
+        pos++;
+    }
+
+    if (pos >= text.length) return pos;
+
+    const ch = text[pos];
+
+    if (ch === '"') {
+        return skipString(text, pos);
+    }
+
+    if (ch === '{' || ch === '[') {
+        const openChar = ch;
+        const closeChar = ch === '{' ? '}' : ']';
+        let depth = 1;
+        pos++;
+        while (pos < text.length && depth > 0) {
+            const c = text[pos];
+            if (c === '"') {
+                pos = skipString(text, pos);
+            } else if (c === openChar || c === (openChar === '{' ? '[' : '{')) {
+                if (c === '{' || c === '[') depth++;
+                pos++;
+            } else if (c === closeChar || c === (closeChar === '}' ? ']' : '}')) {
+                if (c === '}' || c === ']') depth--;
+                pos++;
+            } else {
+                pos++;
+            }
+        }
+        return pos;
+    }
+
+    // プリミティブ値（数値、true, false, null）
+    while (pos < text.length && !/[\s,\]\}]/.test(text[pos])) {
+        pos++;
+    }
+    return pos;
+}
+
+/**
+ * 指定位置から配列のn番目の要素の開始位置を探す
+ */
+function findArrayElement(
+    text: string,
+    startPos: number,
+    targetIndex: number,
+): number {
+    let pos = startPos;
+
+    // 空白をスキップして '[' を探す
+    while (pos < text.length && text[pos] !== '[') {
+        if (text[pos] === '"') {
+            pos = skipString(text, pos);
+        } else {
+            pos++;
+        }
+    }
+
+    if (pos >= text.length) return -1;
+
+    pos++; // '[' をスキップ
+
+    let elementCount = 0;
+
+    while (pos < text.length) {
+        // 空白をスキップ
+        while (pos < text.length && /\s/.test(text[pos])) {
+            pos++;
+        }
+
+        if (pos >= text.length) return -1;
+
+        const ch = text[pos];
+
+        if (ch === ']') {
+            return -1; // 配列終了、要素が見つからなかった
+        }
+
+        if (ch === ',') {
+            pos++;
+            continue;
+        }
+
+        // 要素の開始位置
+        if (elementCount === targetIndex) {
+            return pos;
+        }
+
+        // 要素をスキップ
+        pos = skipValue(text, pos);
+        elementCount++;
+    }
+
+    return -1;
+}
+
+/**
+ * 指定位置からキーの値の開始位置を探す
+ */
+function findKeyValue(text: string, startPos: number, key: string): number {
+    const keyPattern = `"${key}"`;
+    let pos = startPos;
+
+    while (pos < text.length) {
+        // 空白をスキップ
+        while (pos < text.length && /\s/.test(text[pos])) {
+            pos++;
+        }
+
+        if (pos >= text.length) return -1;
+
+        const ch = text[pos];
+
+        if (ch === '"') {
+            // キーパターンと一致するかチェック
+            if (text.substring(pos, pos + keyPattern.length) === keyPattern) {
+                let checkPos = pos + keyPattern.length;
+                // 空白をスキップ
+                while (checkPos < text.length && /\s/.test(text[checkPos])) {
+                    checkPos++;
+                }
+                if (text[checkPos] === ':') {
+                    // ':' の次の位置（値の開始位置）を返す
+                    return checkPos + 1;
+                }
+            }
+            // 一致しない文字列をスキップ
+            pos = skipString(text, pos);
+        } else {
+            pos++;
+        }
+    }
+
+    return -1;
+}
+
+/**
+ * パスから行番号を推測
+ * パス例: "layers[0].paint.fill-color", "layers[0].filter[0][1]"
+ */
+function findLineFromPath(text: string, path: string): number {
+    const segments = parsePath(path);
 
     if (segments.length === 0) {
         return 0;
     }
 
-    // 各セグメントを順番に探す
-    let currentLine = 0;
+    let pos = 0;
 
-    for (let segIdx = 0; segIdx < segments.length; segIdx++) {
-        const segment = segments[segIdx];
-
+    for (const segment of segments) {
         if (segment.type === 'key') {
-            // キーを探す
-            const keyPattern = new RegExp(`"${segment.value}"\\s*:`);
-            for (let i = currentLine; i < lines.length; i++) {
-                if (keyPattern.test(lines[i])) {
-                    currentLine = i;
-                    break;
-                }
+            const valuePos = findKeyValue(text, pos, segment.value);
+            if (valuePos === -1) {
+                break;
             }
+            pos = valuePos;
         } else if (segment.type === 'index') {
-            // 配列のn番目の要素を探す
-            const targetIndex = segment.value as number;
-            let arrayItemCount = 0;
-            let bracketDepth = 0;
-            let braceDepth = 0;
-            let foundArrayStart = false;
-
-            for (let i = currentLine; i < lines.length; i++) {
-                const line = lines[i];
-
-                for (let ci = 0; ci < line.length; ci++) {
-                    const ch = line[ci];
-
-                    if (ch === '[') {
-                        if (!foundArrayStart) {
-                            foundArrayStart = true;
-                            bracketDepth = 1;
-                            braceDepth = 0;
-                        } else {
-                            // 配列直下の配列要素
-                            if (bracketDepth === 1 && braceDepth === 0) {
-                                if (arrayItemCount === targetIndex) {
-                                    currentLine = i;
-                                    return findLineFromPath_continue(
-                                        lines,
-                                        segments,
-                                        segIdx + 1,
-                                        currentLine,
-                                    );
-                                }
-                                arrayItemCount++;
-                            }
-                            bracketDepth++;
-                        }
-                    } else if (ch === ']' && foundArrayStart) {
-                        bracketDepth--;
-                        if (bracketDepth === 0) {
-                            // 配列終了
-                            foundArrayStart = false;
-                        }
-                    } else if (ch === '{' && foundArrayStart) {
-                        if (bracketDepth === 1 && braceDepth === 0) {
-                            // 配列直下のオブジェクト開始
-                            if (arrayItemCount === targetIndex) {
-                                currentLine = i;
-                                // 残りのセグメントを処理
-                                return findLineFromPath_continue(
-                                    lines,
-                                    segments,
-                                    segIdx + 1,
-                                    currentLine,
-                                );
-                            }
-                            arrayItemCount++;
-                        }
-                        braceDepth++;
-                    } else if (ch === '}' && foundArrayStart) {
-                        braceDepth--;
-                    } else if (ch === '"' && foundArrayStart && bracketDepth === 1 && braceDepth === 0) {
-                        // 配列直下の文字列要素
-                        if (arrayItemCount === targetIndex) {
-                            currentLine = i;
-                            return findLineFromPath_continue(
-                                lines,
-                                segments,
-                                segIdx + 1,
-                                currentLine,
-                            );
-                        }
-                        arrayItemCount++;
-                        // 文字列の終端までスキップ
-                        ci++;
-                        while (ci < line.length && !(line[ci] === '"' && line[ci - 1] !== '\\')) {
-                            ci++;
-                        }
-                    }
-                }
+            const elemPos = findArrayElement(text, pos, segment.value);
+            if (elemPos === -1) {
+                break;
             }
+            pos = elemPos;
         }
     }
 
-    return currentLine;
-}
-
-/**
- * findLineFromPath の続き（インデックス見つけた後の処理）
- */
-function findLineFromPath_continue(
-    lines: string[],
-    segments: Array<{ type: 'key' | 'index'; value: string | number }>,
-    segIdx: number,
-    currentLine: number,
-): number {
-    for (let s = segIdx; s < segments.length; s++) {
-        const segment = segments[s];
-
-        if (segment.type === 'key') {
-            const keyPattern = new RegExp(`"${segment.value}"\\s*:`);
-            for (let i = currentLine; i < lines.length; i++) {
-                if (keyPattern.test(lines[i])) {
-                    currentLine = i;
-                    break;
-                }
-            }
-        }
+    // 空白をスキップして実際の値の位置を取得
+    while (pos < text.length && /\s/.test(text[pos])) {
+        pos++;
     }
 
-    return currentLine;
+    // 位置から行番号を計算
+    const beforePos = text.substring(0, pos);
+    return beforePos.split('\n').length - 1;
 }
 
 /**
