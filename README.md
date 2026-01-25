@@ -40,6 +40,59 @@
 },
 ```
 
-## attribution
+## Development
+
+### Prerequisites
+
+- Node.js 20.x or later
+- npm
+- Visual Studio Code
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/Kanahiro/maplibre-vscode-extension.git
+cd maplibre-vscode-extension
+
+# Install dependencies
+npm install
+```
+
+### Running in Development Mode
+
+1. Open the project in VSCode
+2. Press `F5` to launch the Extension Development Host
+3. A new VSCode window will open with the extension loaded
+4. Open a `*style.json` file and test the extension
+
+### Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run compile` | Type check, lint, and build |
+| `npm run watch` | Watch mode for development |
+| `npm run lint` | Run ESLint |
+| `npm run check-types` | Run TypeScript type checking |
+| `npm run package` | Build for production |
+| `npm run build-json-schema` | Generate JSON schema from MapLibre style spec |
+
+### Testing
+
+```bash
+npm test
+```
+
+This runs the VSCode extension tests using `@vscode/test-electron`.
+
+### Building for Release
+
+```bash
+npm run package
+```
+
+This creates the production build in the `dist/` directory.
+
+## Attribution
 
 - icon: <https://github.com/maplibre/maplibre.github.io/blob/main/static/img/maplibre%20old%20profile.png>
