@@ -283,7 +283,8 @@
             if (!color) return '#000000';
             if (color.startsWith('#')) return color;
             if (color.startsWith('rgb')) {
-                const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                // Handle both rgb() and rgba()
+                const match = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
                 if (match) {
                     const r = parseInt(match[1]).toString(16).padStart(2, '0');
                     const g = parseInt(match[2]).toString(16).padStart(2, '0');
