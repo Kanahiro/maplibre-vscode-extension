@@ -5,6 +5,7 @@ import { getPaintProperties, getLayoutProperties } from '../language/schema.js';
 const layerEditorHtml = require('./layerEditor.html');
 
 let currentPanel: vscode.WebviewPanel | null = null;
+let isUpdatingFromPanel = false;
 
 interface UpdateMessage {
     type: 'update';
@@ -127,6 +128,8 @@ export function openLayerEditor(layerId: string, layerIndex: number): void {
                 const updateMsg = message as UpdateMessage;
                 const currentEditor = watcher.editor;
                 if (currentEditor) {
+                    // Mark that we're updating from the panel to avoid refresh loop
+                    isUpdatingFromPanel = true;
                     await updateLayerProperty(
                         currentEditor,
                         updateMsg.layerIndex,
@@ -134,12 +137,20 @@ export function openLayerEditor(layerId: string, layerIndex: number): void {
                         updateMsg.property,
                         updateMsg.value
                     );
+                    // Reset flag after a short delay to allow the file change to propagate
+                    setTimeout(() => {
+                        isUpdatingFromPanel = false;
+                    }, 500);
                 }
             }
         });
 
         // Listen for style changes to refresh the editor
         const styleChangeDisposable = watcher.onStyleChange((newStyle) => {
+            // Skip refresh if the change came from this panel
+            if (isUpdatingFromPanel) {
+                return;
+            }
             if (currentPanel && newStyle && newStyle.layers) {
                 const updatedLayer = newStyle.layers[layerIndex];
                 if (updatedLayer && updatedLayer.id === layerId) {
