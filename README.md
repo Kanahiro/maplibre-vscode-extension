@@ -18,8 +18,7 @@
 
 ![](https://github.com/Kanahiro/maplibre-vscode-extension/blob/main/doc/validation.png?raw=true)
 
-- style file named `*style.json` will be validated by JSON schema generated from type of `StyleSpecification`.
-- currently there is limitation to validate not nested values only.
+- style file named `*style.json` will be validated by `@maplibre/maplibre-gl-style-spec`.
 
 ### Supported protocols
 
@@ -75,7 +74,6 @@ npm install
 | `npm run lint` | Run ESLint |
 | `npm run check-types` | Run TypeScript type checking |
 | `npm run package` | Build for production |
-| `npm run build-json-schema` | Generate JSON schema from MapLibre style spec |
 
 ### Testing
 
