@@ -15,13 +15,164 @@
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "maplibre-style-editor",
+					"title": "MapLibre Style",
+					"icon": "resources/maplibre-icon.svg"
+				}
+			]
+		},
+		"views": {
+			"maplibre-style-editor": [
+				{
+					"id": "maplibre-sources",
+					"name": "Sources",
+					"icon": "$(database)"
+				},
+				{
+					"id": "maplibre-layers",
+					"name": "Layers",
+					"icon": "$(layers)"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "maplibre-sources",
+				"contents": "Open a *style.json file to view sources.\n[Open File](command:workbench.action.openFile)"
+			},
+			{
+				"view": "maplibre-layers",
+				"contents": "Open a *style.json file to view layers.\n[Open File](command:workbench.action.openFile)"
+			}
+		],
 		"commands": [
 			{
 				"command": "maplibre.launch_viewer",
 				"title": "MapLibre: Launch Viewer"
+			},
+			{
+				"command": "maplibre.refreshSidebar",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "maplibre.addSource",
+				"title": "Add Source",
+				"icon": "$(add)"
+			},
+			{
+				"command": "maplibre.deleteSource",
+				"title": "Delete Source",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "maplibre.addLayer",
+				"title": "Add Layer",
+				"icon": "$(add)"
+			},
+			{
+				"command": "maplibre.deleteLayer",
+				"title": "Delete Layer",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "maplibre.duplicateLayer",
+				"title": "Duplicate Layer",
+				"icon": "$(copy)"
+			},
+			{
+				"command": "maplibre.moveLayerUp",
+				"title": "Move Layer Up",
+				"icon": "$(arrow-up)"
+			},
+			{
+				"command": "maplibre.moveLayerDown",
+				"title": "Move Layer Down",
+				"icon": "$(arrow-down)"
+			},
+			{
+				"command": "maplibre.selectLayer",
+				"title": "Select Layer in Editor"
+			},
+			{
+				"command": "maplibre.editLayer",
+				"title": "Edit Layer",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "maplibre.editSource",
+				"title": "Edit Source",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "maplibre.toggleLayerVisibility",
+				"title": "Toggle Visibility",
+				"icon": "$(eye)"
 			}
 		],
 		"menus": {
+			"view/title": [
+				{
+					"command": "maplibre.refreshSidebar",
+					"when": "view == maplibre-sources || view == maplibre-layers",
+					"group": "navigation"
+				},
+				{
+					"command": "maplibre.addSource",
+					"when": "view == maplibre-sources",
+					"group": "navigation"
+				},
+				{
+					"command": "maplibre.addLayer",
+					"when": "view == maplibre-layers",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "maplibre.editSource",
+					"when": "view == maplibre-sources && viewItem == source",
+					"group": "inline"
+				},
+				{
+					"command": "maplibre.deleteSource",
+					"when": "view == maplibre-sources && viewItem == source",
+					"group": "inline"
+				},
+				{
+					"command": "maplibre.toggleLayerVisibility",
+					"when": "view == maplibre-layers && viewItem == layer",
+					"group": "inline"
+				},
+				{
+					"command": "maplibre.editLayer",
+					"when": "view == maplibre-layers && viewItem == layer",
+					"group": "inline"
+				},
+				{
+					"command": "maplibre.moveLayerUp",
+					"when": "view == maplibre-layers && viewItem == layer",
+					"group": "inline"
+				},
+				{
+					"command": "maplibre.moveLayerDown",
+					"when": "view == maplibre-layers && viewItem == layer",
+					"group": "inline"
+				},
+				{
+					"command": "maplibre.duplicateLayer",
+					"when": "view == maplibre-layers && viewItem == layer",
+					"group": "1_modify"
+				},
+				{
+					"command": "maplibre.deleteLayer",
+					"when": "view == maplibre-layers && viewItem == layer",
+					"group": "2_delete"
+				}
+			],
 			"explorer/context": [
 				{
 					"command": "maplibre.launch_viewer",

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Source Editor</title>
+    <style>
+        :root {
+            --vscode-font-family: var(--vscode-editor-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+            --section-spacing: 16px;
+            --input-height: 28px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--vscode-font-family);
+            font-size: 13px;
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 16px;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--vscode-widget-border);
+        }
+
+        h2 {
+            font-size: 14px;
+            margin: var(--section-spacing) 0 8px 0;
+            color: var(--vscode-descriptionForeground);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .source-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background-color: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            font-size: 11px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .section {
+            margin-bottom: var(--section-spacing);
+            padding: 12px;
+            background-color: var(--vscode-input-background);
+            border-radius: 4px;
+        }
+
+        .property-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .property-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .property-label {
+            flex: 0 0 140px;
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            padding-top: 6px;
+        }
+
+        .property-input {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            height: var(--input-height);
+            padding: 4px 8px;
+            border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-size: 13px;
+            width: 100%;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            background: var(--vscode-scrollbarSlider-background);
+            border-radius: 2px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--vscode-button-background);
+            cursor: pointer;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        textarea {
+            font-family: monospace;
+            font-size: 12px;
+            width: 100%;
+            min-height: 100px;
+            padding: 8px;
+            border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            resize: vertical;
+        }
+
+        .json-editor {
+            min-height: 200px;
+        }
+
+        .tiles-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .tile-row {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tile-row input {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+
+        .btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+
+        .btn-secondary {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .btn-icon {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .coordinates-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .coordinate-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .coordinate-row span {
+            width: 80px;
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .coordinate-row input {
+            width: 100px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <div class="empty-state">Select a source to edit</div>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        let currentSource = null;
+        let sourceId = '';
+        let sourceProperties = {};
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Send update to extension
+        const sendUpdate = debounce((property, value) => {
+            vscode.postMessage({
+                type: 'update',
+                sourceId,
+                property,
+                value
+            });
+        }, 300);
+
+        // Immediate update
+        function sendImmediateUpdate(property, value) {
+            vscode.postMessage({
+                type: 'update',
+                sourceId,
+                property,
+                value
+            });
+        }
+
+        // Create property row
+        function createPropertyRow(name, value, metadata) {
+            const row = document.createElement('div');
+            row.className = 'property-row';
+
+            const label = document.createElement('div');
+            label.className = 'property-label';
+            label.textContent = name;
+            label.title = metadata?.doc || name;
+
+            const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'property-input';
+
+            // Handle different types
+            if (metadata?.values) {
+                // Enum type
+                const select = document.createElement('select');
+                select.innerHTML = '<option value="">--</option>';
+                for (const enumValue of Object.keys(metadata.values)) {
+                    const option = document.createElement('option');
+                    option.value = enumValue;
+                    option.textContent = enumValue;
+                    option.selected = value === enumValue;
+                    select.appendChild(option);
+                }
+                select.addEventListener('change', () => {
+                    sendImmediateUpdate(name, select.value || undefined);
+                });
+                inputWrapper.appendChild(select);
+            } else if (metadata?.type === 'number') {
+                // Number type
+                const sliderWrapper = document.createElement('div');
+                sliderWrapper.className = 'slider-wrapper';
+
+                const min = metadata?.minimum ?? 0;
+                const max = metadata?.maximum ?? 24;
+                const step = 1;
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = min;
+                slider.max = max;
+                slider.step = step;
+                slider.value = value ?? metadata?.default ?? min;
+
+                const numInput = document.createElement('input');
+                numInput.type = 'number';
+                numInput.min = min;
+                numInput.max = max;
+                numInput.step = step;
+                numInput.value = value ?? '';
+                numInput.style.width = '70px';
+
+                slider.addEventListener('input', () => {
+                    numInput.value = slider.value;
+                    sendUpdate(name, parseInt(slider.value));
+                });
+
+                numInput.addEventListener('input', () => {
+                    slider.value = numInput.value;
+                    sendUpdate(name, numInput.value ? parseInt(numInput.value) : undefined);
+                });
+
+                sliderWrapper.appendChild(slider);
+                sliderWrapper.appendChild(numInput);
+                inputWrapper.appendChild(sliderWrapper);
+            } else if (metadata?.type === 'boolean') {
+                // Boolean type
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = value === true;
+                checkbox.addEventListener('change', () => {
+                    sendImmediateUpdate(name, checkbox.checked);
+                });
+                inputWrapper.appendChild(checkbox);
+            } else if (name === 'tiles') {
+                // Tiles array
+                const tilesContainer = document.createElement('div');
+                tilesContainer.className = 'tiles-list';
+
+                function renderTiles(tiles) {
+                    tilesContainer.innerHTML = '';
+                    const tileArray = tiles || [''];
+
+                    tileArray.forEach((tile, idx) => {
+                        const tileRow = document.createElement('div');
+                        tileRow.className = 'tile-row';
+
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = tile;
+                        input.placeholder = 'https://example.com/{z}/{x}/{y}.pbf';
+                        input.addEventListener('input', debounce(() => {
+                            const allTiles = Array.from(tilesContainer.querySelectorAll('input'))
+                                .map(inp => inp.value)
+                                .filter(v => v);
+                            sendImmediateUpdate('tiles', allTiles.length > 0 ? allTiles : undefined);
+                        }, 300));
+
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'btn btn-secondary btn-icon';
+                        removeBtn.textContent = '−';
+                        removeBtn.addEventListener('click', () => {
+                            const newTiles = tileArray.filter((_, i) => i !== idx);
+                            renderTiles(newTiles.length > 0 ? newTiles : ['']);
+                            sendImmediateUpdate('tiles', newTiles.length > 0 ? newTiles : undefined);
+                        });
+
+                        tileRow.appendChild(input);
+                        tileRow.appendChild(removeBtn);
+                        tilesContainer.appendChild(tileRow);
+                    });
+
+                    const addBtn = document.createElement('button');
+                    addBtn.className = 'btn btn-secondary btn-small';
+                    addBtn.textContent = '+ Add Tile URL';
+                    addBtn.addEventListener('click', () => {
+                        renderTiles([...tileArray, '']);
+                    });
+                    tilesContainer.appendChild(addBtn);
+                }
+
+                renderTiles(value);
+                inputWrapper.appendChild(tilesContainer);
+            } else if (name === 'bounds') {
+                // Bounds array [west, south, east, north]
+                const boundsContainer = document.createElement('div');
+                boundsContainer.className = 'coordinates-editor';
+
+                const labels = ['West (min lon)', 'South (min lat)', 'East (max lon)', 'North (max lat)'];
+                const currentBounds = value || [-180, -85, 180, 85];
+
+                labels.forEach((labelText, idx) => {
+                    const coordRow = document.createElement('div');
+                    coordRow.className = 'coordinate-row';
+
+                    const span = document.createElement('span');
+                    span.textContent = labelText;
+
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.step = 'any';
+                    input.value = currentBounds[idx] ?? '';
+                    input.addEventListener('input', debounce(() => {
+                        const inputs = boundsContainer.querySelectorAll('input');
+                        const newBounds = Array.from(inputs).map(inp => parseFloat(inp.value) || 0);
+                        sendImmediateUpdate('bounds', newBounds);
+                    }, 300));
+
+                    coordRow.appendChild(span);
+                    coordRow.appendChild(input);
+                    boundsContainer.appendChild(coordRow);
+                });
+
+                inputWrapper.appendChild(boundsContainer);
+            } else if (name === 'coordinates') {
+                // Coordinates array [[lng,lat], [lng,lat], ...]
+                const coordsContainer = document.createElement('div');
+                coordsContainer.className = 'coordinates-editor';
+
+                const corners = ['Top-Left', 'Top-Right', 'Bottom-Right', 'Bottom-Left'];
+                const currentCoords = value || [[0,0], [1,0], [1,1], [0,1]];
+
+                corners.forEach((corner, idx) => {
+                    const coordRow = document.createElement('div');
+                    coordRow.className = 'coordinate-row';
+
+                    const span = document.createElement('span');
+                    span.textContent = corner;
+
+                    const lngInput = document.createElement('input');
+                    lngInput.type = 'number';
+                    lngInput.step = 'any';
+                    lngInput.placeholder = 'lng';
+                    lngInput.value = currentCoords[idx]?.[0] ?? '';
+
+                    const latInput = document.createElement('input');
+                    latInput.type = 'number';
+                    latInput.step = 'any';
+                    latInput.placeholder = 'lat';
+                    latInput.value = currentCoords[idx]?.[1] ?? '';
+
+                    const updateCoords = debounce(() => {
+                        const rows = coordsContainer.querySelectorAll('.coordinate-row');
+                        const newCoords = Array.from(rows).map(row => {
+                            const inputs = row.querySelectorAll('input');
+                            return [parseFloat(inputs[0].value) || 0, parseFloat(inputs[1].value) || 0];
+                        });
+                        sendImmediateUpdate('coordinates', newCoords);
+                    }, 300);
+
+                    lngInput.addEventListener('input', updateCoords);
+                    latInput.addEventListener('input', updateCoords);
+
+                    coordRow.appendChild(span);
+                    coordRow.appendChild(lngInput);
+                    coordRow.appendChild(latInput);
+                    coordsContainer.appendChild(coordRow);
+                });
+
+                inputWrapper.appendChild(coordsContainer);
+            } else if (name === 'data' && typeof value === 'object') {
+                // GeoJSON data
+                const textarea = document.createElement('textarea');
+                textarea.className = 'json-editor';
+                textarea.value = JSON.stringify(value, null, 2);
+                textarea.addEventListener('input', debounce(() => {
+                    try {
+                        const parsed = JSON.parse(textarea.value);
+                        sendImmediateUpdate('data', parsed);
+                        textarea.style.borderColor = '';
+                    } catch {
+                        textarea.style.borderColor = 'var(--vscode-errorForeground)';
+                    }
+                }, 500));
+                inputWrapper.appendChild(textarea);
+
+                const hint = document.createElement('div');
+                hint.className = 'hint';
+                hint.textContent = 'Enter GeoJSON data or a URL';
+                inputWrapper.appendChild(hint);
+            } else {
+                // Default: text input
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = value ?? '';
+                input.addEventListener('input', () => {
+                    sendUpdate(name, input.value || undefined);
+                });
+                inputWrapper.appendChild(input);
+            }
+
+            row.appendChild(label);
+            row.appendChild(inputWrapper);
+            return row;
+        }
+
+        // Render the source editor
+        function renderEditor(source, id, properties) {
+            currentSource = source;
+            sourceId = id;
+            sourceProperties = properties;
+
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+
+            // Header
+            const header = document.createElement('h1');
+            header.innerHTML = `${id}<span class="source-type">${source.type}</span>`;
+            content.appendChild(header);
+
+            // Properties section
+            const section = document.createElement('div');
+            section.className = 'section';
+            const title = document.createElement('h2');
+            title.textContent = 'Properties';
+            section.appendChild(title);
+
+            // Type (read-only)
+            const typeRow = document.createElement('div');
+            typeRow.className = 'property-row';
+            const typeLabel = document.createElement('div');
+            typeLabel.className = 'property-label';
+            typeLabel.textContent = 'type';
+            const typeValue = document.createElement('div');
+            typeValue.className = 'property-input';
+            typeValue.textContent = source.type;
+            typeRow.appendChild(typeLabel);
+            typeRow.appendChild(typeValue);
+            section.appendChild(typeRow);
+
+            // Render all properties based on source type
+            for (const [name, metadata] of Object.entries(properties)) {
+                if (name === 'type') continue;
+                const value = source[name];
+                const row = createPropertyRow(name, value, metadata);
+                section.appendChild(row);
+            }
+
+            content.appendChild(section);
+        }
+
+        // Handle messages from extension
+        window.addEventListener('message', (event) => {
+            const message = event.data;
+            switch (message.type) {
+                case 'load':
+                    renderEditor(
+                        message.source,
+                        message.sourceId,
+                        message.properties
+                    );
+                    break;
+                case 'refresh':
+                    if (currentSource && message.sourceId === sourceId) {
+                        renderEditor(
+                            message.source,
+                            message.sourceId,
+                            sourceProperties
+                        );
+                    }
+                    break;
+            }
+        });
+
+        // Request initial data
+        vscode.postMessage({ type: 'ready' });
+    </script>
+</body>
+</html>

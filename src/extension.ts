@@ -7,6 +7,25 @@ import {
     MapLibreCompletionProvider,
     MapLibreColorProvider,
 } from './language/index.js';
+import {
+    SourcesTreeProvider,
+    LayersTreeProvider,
+    LayerTreeItem,
+    getStyleWatcher,
+    disposeStyleWatcher,
+} from './sidebar/index.js';
+import {
+    addSource,
+    deleteSource,
+    editSource,
+    addLayer,
+    deleteLayer,
+    duplicateLayer,
+    moveLayerUp,
+    moveLayerDown,
+    editLayer,
+    toggleLayerVisibility,
+} from './commands/index.js';
 
 // Document selector for MapLibre style files
 const DOCUMENT_SELECTOR: vscode.DocumentSelector = {
@@ -40,6 +59,53 @@ export function activate(context: vscode.ExtensionContext) {
             new MapLibreColorProvider(),
         ),
     );
+
+    // Register sidebar tree views
+    const sourcesTreeProvider = new SourcesTreeProvider();
+    const layersTreeProvider = new LayersTreeProvider();
+
+    context.subscriptions.push(
+        vscode.window.registerTreeDataProvider('maplibre-sources', sourcesTreeProvider),
+        vscode.window.registerTreeDataProvider('maplibre-layers', layersTreeProvider),
+    );
+
+    // Register sidebar commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('maplibre.refreshSidebar', () => {
+            sourcesTreeProvider.refresh();
+            layersTreeProvider.refresh();
+        }),
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('maplibre.selectLayer', (item: LayerTreeItem) => {
+            const watcher = getStyleWatcher();
+            const editor = watcher.editor;
+            if (editor) {
+                const line = findLine(editor.document.getText(), item.layerId);
+                jumpCursor(editor, line);
+            }
+        }),
+    );
+
+    // Source commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('maplibre.addSource', addSource),
+        vscode.commands.registerCommand('maplibre.deleteSource', deleteSource),
+        vscode.commands.registerCommand('maplibre.editSource', editSource),
+    );
+
+    // Layer commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('maplibre.addLayer', addLayer),
+        vscode.commands.registerCommand('maplibre.deleteLayer', deleteLayer),
+        vscode.commands.registerCommand('maplibre.duplicateLayer', duplicateLayer),
+        vscode.commands.registerCommand('maplibre.moveLayerUp', moveLayerUp),
+        vscode.commands.registerCommand('maplibre.moveLayerDown', moveLayerDown),
+        vscode.commands.registerCommand('maplibre.editLayer', editLayer),
+        vscode.commands.registerCommand('maplibre.toggleLayerVisibility', toggleLayerVisibility),
+    );
+
     const disposable = vscode.commands.registerCommand(
         'maplibre.launch_viewer',
         () => {
@@ -93,4 +159,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
-export function deactivate() {}
+export function deactivate() {
+    disposeStyleWatcher();
+}
