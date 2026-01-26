@@ -27,6 +27,11 @@
 		"views": {
 			"maplibre-style-editor": [
 				{
+					"id": "maplibre-settings",
+					"name": "Settings",
+					"icon": "$(settings-gear)"
+				},
+				{
 					"id": "maplibre-sources",
 					"name": "Sources",
 					"icon": "$(database)"
@@ -39,6 +44,10 @@
 			]
 		},
 		"viewsWelcome": [
+			{
+				"view": "maplibre-settings",
+				"contents": "Open a *style.json file to view settings.\n[Open File](command:workbench.action.openFile)"
+			},
 			{
 				"view": "maplibre-sources",
 				"contents": "Open a *style.json file to view sources.\n[Open File](command:workbench.action.openFile)"
@@ -111,13 +120,23 @@
 				"command": "maplibre.toggleLayerVisibility",
 				"title": "Toggle Visibility",
 				"icon": "$(eye)"
+			},
+			{
+				"command": "maplibre.editSettings",
+				"title": "Edit Settings",
+				"icon": "$(edit)"
 			}
 		],
 		"menus": {
 			"view/title": [
 				{
 					"command": "maplibre.refreshSidebar",
-					"when": "view == maplibre-sources || view == maplibre-layers",
+					"when": "view == maplibre-sources || view == maplibre-layers || view == maplibre-settings",
+					"group": "navigation"
+				},
+				{
+					"command": "maplibre.editSettings",
+					"when": "view == maplibre-settings",
 					"group": "navigation"
 				},
 				{
@@ -132,6 +151,11 @@
 				}
 			],
 			"view/item/context": [
+				{
+					"command": "maplibre.editSettings",
+					"when": "view == maplibre-settings && viewItem == setting",
+					"group": "inline"
+				},
 				{
 					"command": "maplibre.editSource",
 					"when": "view == maplibre-sources && viewItem == source",

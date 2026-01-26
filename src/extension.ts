@@ -10,10 +10,12 @@ import {
 import {
     SourcesTreeProvider,
     LayersTreeProvider,
+    SettingsTreeProvider,
     LayerTreeItem,
     getStyleWatcher,
     disposeStyleWatcher,
 } from './sidebar/index.js';
+import { openStyleSettingsEditor } from './panels/styleSettingsEditor.js';
 import {
     addSource,
     deleteSource,
@@ -61,10 +63,12 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Register sidebar tree views
+    const settingsTreeProvider = new SettingsTreeProvider();
     const sourcesTreeProvider = new SourcesTreeProvider();
     const layersTreeProvider = new LayersTreeProvider();
 
     context.subscriptions.push(
+        vscode.window.registerTreeDataProvider('maplibre-settings', settingsTreeProvider),
         vscode.window.registerTreeDataProvider('maplibre-sources', sourcesTreeProvider),
         vscode.window.registerTreeDataProvider('maplibre-layers', layersTreeProvider),
     );
@@ -72,9 +76,15 @@ export function activate(context: vscode.ExtensionContext) {
     // Register sidebar commands
     context.subscriptions.push(
         vscode.commands.registerCommand('maplibre.refreshSidebar', () => {
+            settingsTreeProvider.refresh();
             sourcesTreeProvider.refresh();
             layersTreeProvider.refresh();
         }),
+    );
+
+    // Settings command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('maplibre.editSettings', openStyleSettingsEditor),
     );
 
     context.subscriptions.push(

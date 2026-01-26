@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style Settings</title>
+    <style>
+        :root {
+            --vscode-font-family: var(--vscode-editor-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+            --section-spacing: 16px;
+            --input-height: 28px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--vscode-font-family);
+            font-size: 13px;
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 16px;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--vscode-widget-border);
+        }
+
+        h2 {
+            font-size: 14px;
+            margin: var(--section-spacing) 0 8px 0;
+            color: var(--vscode-descriptionForeground);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section {
+            margin-bottom: var(--section-spacing);
+            padding: 12px;
+            background-color: var(--vscode-input-background);
+            border-radius: 4px;
+        }
+
+        .property-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .property-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .property-label {
+            flex: 0 0 100px;
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .property-input {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            height: var(--input-height);
+            padding: 4px 8px;
+            border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-size: 13px;
+            width: 100%;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            background: var(--vscode-scrollbarSlider-background);
+            border-radius: 2px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--vscode-button-background);
+            cursor: pointer;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .coordinate-inputs {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .coordinate-inputs input {
+            flex: 1;
+        }
+
+        .coordinate-inputs span {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            min-width: 20px;
+        }
+
+        textarea {
+            font-family: monospace;
+            font-size: 12px;
+            width: 100%;
+            min-height: 80px;
+            padding: 8px;
+            border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            resize: vertical;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--vscode-descriptionForeground);
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <div class="empty-state">Open a style.json file to edit settings</div>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        let currentStyle = null;
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Send update to extension
+        const sendUpdate = debounce((property, value) => {
+            vscode.postMessage({
+                type: 'update',
+                property,
+                value
+            });
+        }, 300);
+
+        // Immediate update
+        function sendImmediateUpdate(property, value) {
+            vscode.postMessage({
+                type: 'update',
+                property,
+                value
+            });
+        }
+
+        // Render the settings editor
+        function renderEditor(style) {
+            currentStyle = style;
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+
+            // Header
+            const header = document.createElement('h1');
+            header.textContent = 'Style Settings';
+            content.appendChild(header);
+
+            // Basic Info Section
+            const basicSection = document.createElement('div');
+            basicSection.className = 'section';
+            const basicTitle = document.createElement('h2');
+            basicTitle.textContent = 'Basic';
+            basicSection.appendChild(basicTitle);
+
+            // Name
+            basicSection.appendChild(createTextRow('name', style.name, 'Style name'));
+
+            content.appendChild(basicSection);
+
+            // Resources Section
+            const resourcesSection = document.createElement('div');
+            resourcesSection.className = 'section';
+            const resourcesTitle = document.createElement('h2');
+            resourcesTitle.textContent = 'Resources';
+            resourcesSection.appendChild(resourcesTitle);
+
+            // Sprite
+            resourcesSection.appendChild(createTextRow('sprite', style.sprite, 'URL to sprite image'));
+
+            // Glyphs
+            resourcesSection.appendChild(createTextRow('glyphs', style.glyphs, 'URL template for glyphs (e.g., {fontstack}/{range}.pbf)'));
+
+            content.appendChild(resourcesSection);
+
+            // View Section
+            const viewSection = document.createElement('div');
+            viewSection.className = 'section';
+            const viewTitle = document.createElement('h2');
+            viewTitle.textContent = 'Initial View';
+            viewSection.appendChild(viewTitle);
+
+            // Center
+            viewSection.appendChild(createCenterRow('center', style.center));
+
+            // Zoom
+            viewSection.appendChild(createSliderRow('zoom', style.zoom, 0, 24, 0.1, 'Initial zoom level'));
+
+            // Bearing
+            viewSection.appendChild(createSliderRow('bearing', style.bearing, -180, 180, 1, 'Bearing in degrees'));
+
+            // Pitch
+            viewSection.appendChild(createSliderRow('pitch', style.pitch, 0, 85, 1, 'Pitch in degrees'));
+
+            content.appendChild(viewSection);
+
+            // Advanced Section
+            const advancedSection = document.createElement('div');
+            advancedSection.className = 'section';
+            const advancedTitle = document.createElement('h2');
+            advancedTitle.textContent = 'Advanced';
+            advancedSection.appendChild(advancedTitle);
+
+            // Light
+            advancedSection.appendChild(createJsonRow('light', style.light, 'Light configuration (JSON)'));
+
+            // Terrain
+            advancedSection.appendChild(createJsonRow('terrain', style.terrain, 'Terrain configuration (JSON)'));
+
+            // Fog
+            advancedSection.appendChild(createJsonRow('fog', style.fog, 'Fog configuration (JSON)'));
+
+            // Sky
+            advancedSection.appendChild(createJsonRow('sky', style.sky, 'Sky configuration (JSON)'));
+
+            // Transition
+            advancedSection.appendChild(createJsonRow('transition', style.transition, 'Transition configuration (JSON)'));
+
+            content.appendChild(advancedSection);
+        }
+
+        function createTextRow(name, value, placeholder) {
+            const row = document.createElement('div');
+            row.className = 'property-row';
+
+            const label = document.createElement('div');
+            label.className = 'property-label';
+            label.textContent = name;
+
+            const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'property-input';
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value || '';
+            input.placeholder = placeholder || '';
+            input.addEventListener('input', () => {
+                sendUpdate(name, input.value || undefined);
+            });
+
+            inputWrapper.appendChild(input);
+            row.appendChild(label);
+            row.appendChild(inputWrapper);
+            return row;
+        }
+
+        function createCenterRow(name, value) {
+            const row = document.createElement('div');
+            row.className = 'property-row';
+
+            const label = document.createElement('div');
+            label.className = 'property-label';
+            label.textContent = name;
+
+            const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'property-input';
+
+            const coordInputs = document.createElement('div');
+            coordInputs.className = 'coordinate-inputs';
+
+            const lngLabel = document.createElement('span');
+            lngLabel.textContent = 'lng';
+            const lngInput = document.createElement('input');
+            lngInput.type = 'number';
+            lngInput.step = 'any';
+            lngInput.value = value?.[0] ?? '';
+            lngInput.placeholder = '0';
+
+            const latLabel = document.createElement('span');
+            latLabel.textContent = 'lat';
+            const latInput = document.createElement('input');
+            latInput.type = 'number';
+            latInput.step = 'any';
+            latInput.value = value?.[1] ?? '';
+            latInput.placeholder = '0';
+
+            const updateCenter = debounce(() => {
+                const lng = parseFloat(lngInput.value);
+                const lat = parseFloat(latInput.value);
+                if (!isNaN(lng) && !isNaN(lat)) {
+                    sendImmediateUpdate(name, [lng, lat]);
+                } else if (lngInput.value === '' && latInput.value === '') {
+                    sendImmediateUpdate(name, undefined);
+                }
+            }, 300);
+
+            lngInput.addEventListener('input', updateCenter);
+            latInput.addEventListener('input', updateCenter);
+
+            coordInputs.appendChild(lngLabel);
+            coordInputs.appendChild(lngInput);
+            coordInputs.appendChild(latLabel);
+            coordInputs.appendChild(latInput);
+
+            inputWrapper.appendChild(coordInputs);
+            row.appendChild(label);
+            row.appendChild(inputWrapper);
+            return row;
+        }
+
+        function createSliderRow(name, value, min, max, step, title) {
+            const row = document.createElement('div');
+            row.className = 'property-row';
+
+            const label = document.createElement('div');
+            label.className = 'property-label';
+            label.textContent = name;
+            label.title = title;
+
+            const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'property-input';
+
+            const sliderWrapper = document.createElement('div');
+            sliderWrapper.className = 'slider-wrapper';
+
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = min;
+            slider.max = max;
+            slider.step = step;
+            slider.value = value ?? min;
+
+            const numInput = document.createElement('input');
+            numInput.type = 'number';
+            numInput.min = min;
+            numInput.max = max;
+            numInput.step = step;
+            numInput.value = value ?? '';
+            numInput.style.width = '70px';
+
+            slider.addEventListener('input', () => {
+                numInput.value = slider.value;
+                sendUpdate(name, parseFloat(slider.value));
+            });
+
+            numInput.addEventListener('input', () => {
+                slider.value = numInput.value || min;
+                sendUpdate(name, numInput.value ? parseFloat(numInput.value) : undefined);
+            });
+
+            sliderWrapper.appendChild(slider);
+            sliderWrapper.appendChild(numInput);
+            inputWrapper.appendChild(sliderWrapper);
+            row.appendChild(label);
+            row.appendChild(inputWrapper);
+            return row;
+        }
+
+        function createJsonRow(name, value, hint) {
+            const container = document.createElement('div');
+            container.style.marginBottom = '12px';
+
+            const row = document.createElement('div');
+            row.className = 'property-row';
+            row.style.alignItems = 'flex-start';
+
+            const label = document.createElement('div');
+            label.className = 'property-label';
+            label.textContent = name;
+            label.style.paddingTop = '8px';
+
+            const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'property-input';
+            inputWrapper.style.flexDirection = 'column';
+            inputWrapper.style.alignItems = 'stretch';
+
+            const textarea = document.createElement('textarea');
+            textarea.value = value ? JSON.stringify(value, null, 2) : '';
+            textarea.placeholder = hint || 'Enter JSON...';
+            textarea.addEventListener('input', debounce(() => {
+                try {
+                    if (textarea.value.trim() === '') {
+                        sendImmediateUpdate(name, undefined);
+                        textarea.style.borderColor = '';
+                    } else {
+                        const parsed = JSON.parse(textarea.value);
+                        sendImmediateUpdate(name, parsed);
+                        textarea.style.borderColor = '';
+                    }
+                } catch {
+                    textarea.style.borderColor = 'var(--vscode-errorForeground)';
+                }
+            }, 500));
+
+            inputWrapper.appendChild(textarea);
+
+            if (hint) {
+                const hintEl = document.createElement('div');
+                hintEl.className = 'hint';
+                hintEl.textContent = hint;
+                inputWrapper.appendChild(hintEl);
+            }
+
+            row.appendChild(label);
+            row.appendChild(inputWrapper);
+            container.appendChild(row);
+            return container;
+        }
+
+        // Handle messages from extension
+        window.addEventListener('message', (event) => {
+            const message = event.data;
+            switch (message.type) {
+                case 'load':
+                    renderEditor(message.style);
+                    break;
+                case 'refresh':
+                    // Don't re-render to avoid losing focus
+                    // Just update currentStyle for reference
+                    currentStyle = message.style;
+                    break;
+            }
+        });
+
+        // Request initial data
+        vscode.postMessage({ type: 'ready' });
+    </script>
+</body>
+</html>
