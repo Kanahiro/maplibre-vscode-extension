@@ -495,6 +495,40 @@
 
             content.appendChild(basicSection);
 
+            // Metadata section
+            const metadataSection = document.createElement('div');
+            metadataSection.className = 'section';
+            const metadataTitle = document.createElement('h2');
+            metadataTitle.textContent = 'Metadata';
+            metadataSection.appendChild(metadataTitle);
+
+            const metadataTextarea = document.createElement('textarea');
+            metadataTextarea.className = 'filter-editor';
+            metadataTextarea.value = layer.metadata ? JSON.stringify(layer.metadata, null, 2) : '';
+            metadataTextarea.placeholder = '{"mapbox:group": "group-id", "custom": "value"}';
+            metadataTextarea.addEventListener('input', debounce(() => {
+                try {
+                    if (metadataTextarea.value.trim() === '') {
+                        sendImmediateUpdate('metadata', undefined, 'layer');
+                        metadataTextarea.style.borderColor = '';
+                    } else {
+                        const parsed = JSON.parse(metadataTextarea.value);
+                        sendImmediateUpdate('metadata', parsed, 'layer');
+                        metadataTextarea.style.borderColor = '';
+                    }
+                } catch {
+                    metadataTextarea.style.borderColor = 'var(--vscode-errorForeground)';
+                }
+            }, 500));
+            metadataSection.appendChild(metadataTextarea);
+
+            const metadataHint = document.createElement('div');
+            metadataHint.className = 'expression-hint';
+            metadataHint.textContent = 'Arbitrary metadata (JSON). Common: mapbox:group for layer grouping';
+            metadataSection.appendChild(metadataHint);
+
+            content.appendChild(metadataSection);
+
             // Filter section
             if (layer.type !== 'background') {
                 const filterSection = document.createElement('div');

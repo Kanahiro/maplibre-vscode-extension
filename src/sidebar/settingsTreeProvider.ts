@@ -40,6 +40,8 @@ export class SettingTreeItem extends vscode.TreeItem {
         switch (this.settingName) {
             case 'name':
                 return new vscode.ThemeIcon('tag');
+            case 'metadata':
+                return new vscode.ThemeIcon('json');
             case 'sprite':
                 return new vscode.ThemeIcon('symbol-color');
             case 'glyphs':
@@ -75,6 +77,7 @@ export class SettingsTreeProvider implements vscode.TreeDataProvider<vscode.Tree
     // Root-level properties to show (excluding sources and layers)
     private static readonly SETTINGS_PROPERTIES = [
         'name',
+        'metadata',
         'sprite',
         'glyphs',
         'center',

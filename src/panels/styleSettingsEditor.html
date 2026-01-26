@@ -215,6 +215,18 @@
 
             content.appendChild(basicSection);
 
+            // Metadata Section
+            const metadataSection = document.createElement('div');
+            metadataSection.className = 'section';
+            const metadataTitle = document.createElement('h2');
+            metadataTitle.textContent = 'Metadata';
+            metadataSection.appendChild(metadataTitle);
+
+            // Metadata JSON
+            metadataSection.appendChild(createJsonRow('metadata', style.metadata, 'Arbitrary metadata for the style (JSON)'));
+
+            content.appendChild(metadataSection);
+
             // Resources Section
             const resourcesSection = document.createElement('div');
             resourcesSection.className = 'section';
