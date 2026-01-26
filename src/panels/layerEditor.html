@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layer Editor</title>
+    <style>
+        :root {
+            --vscode-font-family: var(--vscode-editor-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+            --section-spacing: 16px;
+            --input-height: 28px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--vscode-font-family);
+            font-size: 13px;
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 16px;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--vscode-widget-border);
+        }
+
+        h2 {
+            font-size: 14px;
+            margin: var(--section-spacing) 0 8px 0;
+            color: var(--vscode-descriptionForeground);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .layer-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background-color: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            font-size: 11px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .section {
+            margin-bottom: var(--section-spacing);
+            padding: 12px;
+            background-color: var(--vscode-input-background);
+            border-radius: 4px;
+        }
+
+        .property-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .property-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .property-label {
+            flex: 0 0 140px;
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .property-input {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            height: var(--input-height);
+            padding: 4px 8px;
+            border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-size: 13px;
+            width: 100%;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+        }
+
+        input[type="color"] {
+            width: 36px;
+            height: var(--input-height);
+            padding: 2px;
+            border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            background: var(--vscode-scrollbarSlider-background);
+            border-radius: 2px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--vscode-button-background);
+            cursor: pointer;
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .color-input-wrapper input[type="text"] {
+            flex: 1;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .slider-value {
+            width: 60px;
+            text-align: right;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .filter-editor {
+            font-family: monospace;
+            font-size: 12px;
+            width: 100%;
+            min-height: 60px;
+            padding: 8px;
+            border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            resize: vertical;
+        }
+
+        .expression-hint {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            margin-top: 4px;
+        }
+
+        .btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+
+        .btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+
+        .btn-secondary {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: var(--section-spacing);
+            padding-top: var(--section-spacing);
+            border-top: 1px solid var(--vscode-widget-border);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .property-group {
+            margin-bottom: 12px;
+        }
+
+        .property-group-title {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--vscode-widget-border);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <div class="empty-state">Select a layer to edit</div>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        let currentLayer = null;
+        let layerIndex = -1;
+        let paintProperties = {};
+        let layoutProperties = {};
+
+        // Debounce function for live updates
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Send update to extension
+        const sendUpdate = debounce((property, value, section) => {
+            vscode.postMessage({
+                type: 'update',
+                property,
+                value,
+                section,
+                layerIndex
+            });
+        }, 300);
+
+        // Immediate update (for selects, checkboxes)
+        function sendImmediateUpdate(property, value, section) {
+            vscode.postMessage({
+                type: 'update',
+                property,
+                value,
+                section,
+                layerIndex
+            });
+        }
+
+        // Convert color to hex
+        function toHexColor(color) {
+            if (!color) return '#000000';
+            if (color.startsWith('#')) return color;
+            if (color.startsWith('rgb')) {
+                const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                if (match) {
+                    const r = parseInt(match[1]).toString(16).padStart(2, '0');
+                    const g = parseInt(match[2]).toString(16).padStart(2, '0');
+                    const b = parseInt(match[3]).toString(16).padStart(2, '0');
+                    return `#${r}${g}${b}`;
+                }
+            }
+            return color;
+        }
+
+        // Create property input based on type
+        function createPropertyInput(name, value, metadata, section) {
+            const type = metadata?.type || 'string';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'property-input';
+
+            // Handle expressions (arrays or objects with stops)
+            if (Array.isArray(value) || (typeof value === 'object' && value !== null && !metadata?.values)) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = JSON.stringify(value);
+                input.title = 'Expression value (JSON)';
+                input.addEventListener('input', () => {
+                    try {
+                        const parsed = JSON.parse(input.value);
+                        sendUpdate(name, parsed, section);
+                        input.style.borderColor = '';
+                    } catch {
+                        input.style.borderColor = 'var(--vscode-errorForeground)';
+                    }
+                });
+                wrapper.appendChild(input);
+                return wrapper;
+            }
+
+            // Color type
+            if (type === 'color' || name.includes('color')) {
+                const colorWrapper = document.createElement('div');
+                colorWrapper.className = 'color-input-wrapper';
+
+                const colorPicker = document.createElement('input');
+                colorPicker.type = 'color';
+                colorPicker.value = toHexColor(value) || '#000000';
+
+                const textInput = document.createElement('input');
+                textInput.type = 'text';
+                textInput.value = value || '';
+                textInput.placeholder = '#000000';
+
+                colorPicker.addEventListener('input', () => {
+                    textInput.value = colorPicker.value;
+                    sendUpdate(name, colorPicker.value, section);
+                });
+
+                textInput.addEventListener('input', () => {
+                    if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
+                        colorPicker.value = textInput.value;
+                    }
+                    sendUpdate(name, textInput.value, section);
+                });
+
+                colorWrapper.appendChild(colorPicker);
+                colorWrapper.appendChild(textInput);
+                wrapper.appendChild(colorWrapper);
+                return wrapper;
+            }
+
+            // Enum type
+            if (metadata?.values) {
+                const select = document.createElement('select');
+                select.innerHTML = '<option value="">--</option>';
+                for (const enumValue of Object.keys(metadata.values)) {
+                    const option = document.createElement('option');
+                    option.value = enumValue;
+                    option.textContent = enumValue;
+                    option.selected = value === enumValue;
+                    select.appendChild(option);
+                }
+                select.addEventListener('change', () => {
+                    sendImmediateUpdate(name, select.value || undefined, section);
+                });
+                wrapper.appendChild(select);
+                return wrapper;
+            }
+
+            // Number type with range
+            if (type === 'number') {
+                const sliderWrapper = document.createElement('div');
+                sliderWrapper.className = 'slider-wrapper';
+
+                const min = metadata?.minimum ?? 0;
+                const max = metadata?.maximum ?? (name.includes('opacity') ? 1 : 100);
+                const step = name.includes('opacity') || max <= 1 ? 0.01 : 1;
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = min;
+                slider.max = max;
+                slider.step = step;
+                slider.value = value ?? metadata?.default ?? min;
+
+                const numInput = document.createElement('input');
+                numInput.type = 'number';
+                numInput.min = min;
+                numInput.max = max;
+                numInput.step = step;
+                numInput.value = value ?? '';
+                numInput.style.width = '70px';
+
+                slider.addEventListener('input', () => {
+                    numInput.value = slider.value;
+                    sendUpdate(name, parseFloat(slider.value), section);
+                });
+
+                numInput.addEventListener('input', () => {
+                    slider.value = numInput.value;
+                    sendUpdate(name, numInput.value ? parseFloat(numInput.value) : undefined, section);
+                });
+
+                sliderWrapper.appendChild(slider);
+                sliderWrapper.appendChild(numInput);
+                wrapper.appendChild(sliderWrapper);
+                return wrapper;
+            }
+
+            // Boolean type
+            if (type === 'boolean') {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = value === true;
+                checkbox.addEventListener('change', () => {
+                    sendImmediateUpdate(name, checkbox.checked, section);
+                });
+                wrapper.appendChild(checkbox);
+                return wrapper;
+            }
+
+            // Default: text input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value ?? '';
+            input.addEventListener('input', () => {
+                sendUpdate(name, input.value || undefined, section);
+            });
+            wrapper.appendChild(input);
+            return wrapper;
+        }
+
+        // Create a property row
+        function createPropertyRow(name, value, metadata, section) {
+            const row = document.createElement('div');
+            row.className = 'property-row';
+
+            const label = document.createElement('div');
+            label.className = 'property-label';
+            label.textContent = name;
+            label.title = metadata?.doc || name;
+
+            const input = createPropertyInput(name, value, metadata, section);
+
+            row.appendChild(label);
+            row.appendChild(input);
+            return row;
+        }
+
+        // Render the layer editor
+        function renderEditor(layer, index, paint, layout) {
+            currentLayer = layer;
+            layerIndex = index;
+            paintProperties = paint;
+            layoutProperties = layout;
+
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+
+            // Header
+            const header = document.createElement('h1');
+            header.innerHTML = `${layer.id}<span class="layer-type">${layer.type}</span>`;
+            content.appendChild(header);
+
+            // Basic properties section
+            const basicSection = document.createElement('div');
+            basicSection.className = 'section';
+            const basicTitle = document.createElement('h2');
+            basicTitle.textContent = 'Basic';
+            basicSection.appendChild(basicTitle);
+
+            // ID (read-only for reference)
+            const idRow = createPropertyRow('id', layer.id, { type: 'string', doc: 'Layer ID' }, 'layer');
+            basicSection.appendChild(idRow);
+
+            // Source
+            if (layer.type !== 'background') {
+                const sourceRow = createPropertyRow('source', layer.source, { type: 'string', doc: 'Source ID' }, 'layer');
+                basicSection.appendChild(sourceRow);
+
+                if (layer['source-layer'] !== undefined || layer.source) {
+                    const sourceLayerRow = createPropertyRow('source-layer', layer['source-layer'], { type: 'string', doc: 'Source layer' }, 'layer');
+                    basicSection.appendChild(sourceLayerRow);
+                }
+            }
+
+            // Zoom range
+            const minzoomRow = createPropertyRow('minzoom', layer.minzoom, { type: 'number', minimum: 0, maximum: 24, doc: 'Minimum zoom level' }, 'layer');
+            basicSection.appendChild(minzoomRow);
+
+            const maxzoomRow = createPropertyRow('maxzoom', layer.maxzoom, { type: 'number', minimum: 0, maximum: 24, doc: 'Maximum zoom level' }, 'layer');
+            basicSection.appendChild(maxzoomRow);
+
+            content.appendChild(basicSection);
+
+            // Metadata section
+            const metadataSection = document.createElement('div');
+            metadataSection.className = 'section';
+            const metadataTitle = document.createElement('h2');
+            metadataTitle.textContent = 'Metadata';
+            metadataSection.appendChild(metadataTitle);
+
+            const metadataTextarea = document.createElement('textarea');
+            metadataTextarea.className = 'filter-editor';
+            metadataTextarea.value = layer.metadata ? JSON.stringify(layer.metadata, null, 2) : '';
+            metadataTextarea.placeholder = '{"mapbox:group": "group-id", "custom": "value"}';
+            metadataTextarea.addEventListener('input', debounce(() => {
+                try {
+                    if (metadataTextarea.value.trim() === '') {
+                        sendImmediateUpdate('metadata', undefined, 'layer');
+                        metadataTextarea.style.borderColor = '';
+                    } else {
+                        const parsed = JSON.parse(metadataTextarea.value);
+                        sendImmediateUpdate('metadata', parsed, 'layer');
+                        metadataTextarea.style.borderColor = '';
+                    }
+                } catch {
+                    metadataTextarea.style.borderColor = 'var(--vscode-errorForeground)';
+                }
+            }, 500));
+            metadataSection.appendChild(metadataTextarea);
+
+            const metadataHint = document.createElement('div');
+            metadataHint.className = 'expression-hint';
+            metadataHint.textContent = 'Arbitrary metadata (JSON). Common: mapbox:group for layer grouping';
+            metadataSection.appendChild(metadataHint);
+
+            content.appendChild(metadataSection);
+
+            // Filter section
+            if (layer.type !== 'background') {
+                const filterSection = document.createElement('div');
+                filterSection.className = 'section';
+                const filterTitle = document.createElement('h2');
+                filterTitle.textContent = 'Filter';
+                filterSection.appendChild(filterTitle);
+
+                const filterTextarea = document.createElement('textarea');
+                filterTextarea.className = 'filter-editor';
+                filterTextarea.value = layer.filter ? JSON.stringify(layer.filter, null, 2) : '';
+                filterTextarea.placeholder = '["==", ["get", "type"], "residential"]';
+                filterTextarea.addEventListener('input', debounce(() => {
+                    try {
+                        const parsed = filterTextarea.value ? JSON.parse(filterTextarea.value) : undefined;
+                        sendImmediateUpdate('filter', parsed, 'layer');
+                        filterTextarea.style.borderColor = '';
+                    } catch {
+                        filterTextarea.style.borderColor = 'var(--vscode-errorForeground)';
+                    }
+                }, 500));
+                filterSection.appendChild(filterTextarea);
+
+                const hint = document.createElement('div');
+                hint.className = 'expression-hint';
+                hint.textContent = 'Enter a MapLibre filter expression in JSON format';
+                filterSection.appendChild(hint);
+
+                content.appendChild(filterSection);
+            }
+
+            // Paint properties section
+            if (Object.keys(paint).length > 0) {
+                const paintSection = document.createElement('div');
+                paintSection.className = 'section';
+                const paintTitle = document.createElement('h2');
+                paintTitle.textContent = 'Paint';
+                paintSection.appendChild(paintTitle);
+
+                for (const [name, metadata] of Object.entries(paint)) {
+                    const value = layer.paint?.[name];
+                    const row = createPropertyRow(name, value, metadata, 'paint');
+                    paintSection.appendChild(row);
+                }
+
+                content.appendChild(paintSection);
+            }
+
+            // Layout properties section
+            if (Object.keys(layout).length > 0) {
+                const layoutSection = document.createElement('div');
+                layoutSection.className = 'section';
+                const layoutTitle = document.createElement('h2');
+                layoutTitle.textContent = 'Layout';
+                layoutSection.appendChild(layoutTitle);
+
+                for (const [name, metadata] of Object.entries(layout)) {
+                    const value = layer.layout?.[name];
+                    const row = createPropertyRow(name, value, metadata, 'layout');
+                    layoutSection.appendChild(row);
+                }
+
+                content.appendChild(layoutSection);
+            }
+        }
+
+        // Handle messages from extension
+        window.addEventListener('message', (event) => {
+            const message = event.data;
+            switch (message.type) {
+                case 'load':
+                    renderEditor(
+                        message.layer,
+                        message.layerIndex,
+                        message.paintProperties,
+                        message.layoutProperties
+                    );
+                    break;
+                case 'refresh':
+                    if (currentLayer && message.layer.id === currentLayer.id) {
+                        renderEditor(
+                            message.layer,
+                            message.layerIndex,
+                            paintProperties,
+                            layoutProperties
+                        );
+                    }
+                    break;
+            }
+        });
+
+        // Request initial data
+        vscode.postMessage({ type: 'ready' });
+    </script>
+</body>
+</html>

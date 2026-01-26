@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- 背景の円 -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#333" stroke-width="12"/>
+  
+  <!-- 位置ピン -->
+  <path d="M100 35
+           C70 35 50 58 50 85
+           C50 115 100 155 100 155
+           C100 155 150 115 150 85
+           C150 58 130 35 100 35
+           Z" 
+        fill="none" 
+        stroke="#333" 
+        stroke-width="12"
+        stroke-linejoin="round"/>
+  
+  <!-- ピンの中心の円 -->
+  <circle cx="100" cy="82" r="18" fill="none" stroke="#333" stroke-width="12"/>
+  
+  <!-- 下部の長方形（USBポート風） -->
+  <rect x="75" y="155" width="50" height="22" rx="4" ry="4" fill="none" stroke="#333" stroke-width="12"/>
+</svg>
